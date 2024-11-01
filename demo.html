@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dynamic Tabbed Modal Demo</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" href="./node-modal.css" />
+  </head>
+  <body>
+    <button id="openModalBtn">Open Node Modal</button>
+    <button id="openProjectModalBtn">Open Project Modal</button>
+
+    <div class="modal-overlay" tabindex="0">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalTitle">
+        <div class="modal-header">
+          <h2 id="modalTitle">Modal Title</h2>
+          <span class="close-btn" tabindex="0" aria-label="Close Modal"
+            ><i class="fas fa-times"></i
+          ></span>
+        </div>
+
+        <div class="tabs" role="tablist">
+          
+        </div>
+
+        <div class="tab-content-container">
+          
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+    <script type="module" src="./guac-modal/example1.js"></script>
+  </body>
+</html>
