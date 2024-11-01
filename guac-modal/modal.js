@@ -107,7 +107,7 @@ class ModalHTML {
       .append(tabElements);
   }
 }
-
+a
 class Modal {
   constructor() {
     this.$overlay = $(".modal-overlay");
