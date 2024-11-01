@@ -107,7 +107,7 @@ class ModalHTML {
       .append(tabElements);
   }
 }
-a
+
 class Modal {
   constructor() {
     this.$overlay = $(".modal-overlay");
@@ -119,7 +119,7 @@ class Modal {
     this.renderedTabs = [];
     this.activeTabIndex = -1;
     this.isAnimating = false;
-    this.isOpen = false;
+    this.isOpen = false; 
 
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.bindEvents();
@@ -139,14 +139,17 @@ class Modal {
   }
 
   init(title, modalTabData) {
-    if (this.isOpen) return;
+    if (this.isOpen) {
+      return;
+    }
     this.clearModal();
     this.$modalHeader.text(title);
     modalTabData.forEach((tabData) => this.addTab(tabData));
 
-    if (modalTabData.length > 0) {
-      this.switchTab(0, false);
+    if (modalTabData.length === 0) {
+      throw new Error("Modal must have at least one tab");
     }
+    this.switchTab(0, false);
   }
 
   clearModal() {
@@ -156,10 +159,20 @@ class Modal {
     this.activeTabIndex = -1;
   }
 
+
   openModal() {
-    if (this.isOpen) return;
+    if (this.isOpen) {
+      return;
+    }
+    this.activeTabIndex = 0;
     this.$overlay.fadeIn(200, () => {
-      this.$windowTabs.find(".tab").eq(0).focus();
+      this.$windowTabs
+        .find(".tab")
+        .eq(0)
+        .addClass("active")
+        .attr("aria-selected", "true")
+        .focus();
+      this.$modalContent.find(".tab-content").eq(0).addClass("active").show(); 
       $(document).on("keydown", this.handleKeyDown);
     });
     this.isOpen = true;
@@ -191,21 +204,21 @@ class Modal {
    */
   switchToAdjacentTab(previous = false) {
     if (!this.isOpen) {
-			return;
-		}
+      return;
+    }
 
     const tabCount = this.renderedTabs.length;
     if (tabCount <= 1) {
-			return;
-		}
+      return;
+    }
 
     let newIndex;
     if (previous) {
       newIndex =
-        (this.activeTabIndex <= 0) ? tabCount - 1 : this.activeTabIndex - 1;
+        this.activeTabIndex <= 0 ? tabCount - 1 : this.activeTabIndex - 1;
     } else {
       newIndex =
-        (this.activeTabIndex >= tabCount - 1) ? 0 : this.activeTabIndex + 1;
+        this.activeTabIndex >= tabCount - 1 ? 0 : this.activeTabIndex + 1;
     }
 
     this.switchTab(newIndex);
@@ -213,13 +226,9 @@ class Modal {
   }
 
   switchTab(index, animate = true) {
-    if (
-			!this.isOpen || 
-			this.isAnimating || 
-			index === this.activeTabIndex
-		) {
-			return;
-		}
+    if (!this.isOpen || this.isAnimating || index === this.activeTabIndex) {
+      return;
+    }
 
     this.isAnimating = true;
     const $tabs = this.$windowTabs.find(".tab");
@@ -243,9 +252,10 @@ class Modal {
 
     if (this.activeTabIndex === -1 || !animate) {
       switchContent();
-			return;
-    } 
-		$prevContent.fadeOut(200, () => {
+      return;
+    }
+
+    $prevContent.fadeOut(200, () => {
       $newContent.fadeIn(200, () => {
         this.isAnimating = false;
         this.activeTabIndex = index;
@@ -255,8 +265,8 @@ class Modal {
 
   handleKeyDown(event) {
     if (!this.isOpen) {
-			return;
-		}
+      return;
+    }
     switch (event.key) {
       case "Escape":
         this.closeModal();
@@ -287,7 +297,6 @@ class Modal {
       this.guardEvent(() => this.closeModal())
     );
 
-    // Overlay click
     this.$overlay.on(
       "click",
       this.guardEvent((event) => {
@@ -297,14 +306,19 @@ class Modal {
       })
     );
 
-    // Tab events
     this.$windowTabs
-      .on("click", ".tab", this.guardEvent((event) => {
+      .on(
+        "click",
+        ".tab",
+        this.guardEvent((event) => {
           const index = $(event.currentTarget).index();
           this.switchTab(index);
-      	})
-			)
-      .on("keypress", ".tab", this.guardEvent((event) => {
+        })
+      )
+      .on(
+        "keypress",
+        ".tab",
+        this.guardEvent((event) => {
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             const index = $(event.currentTarget).index();
@@ -313,7 +327,9 @@ class Modal {
         })
       );
 
-    this.$modalContent.on("click keypress", ".collapsible-header",
+    this.$modalContent.on(
+      "click keypress",
+      ".collapsible-header",
       this.guardEvent((event) => {
         if (
           event.type === "keypress" &&
