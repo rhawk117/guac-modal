@@ -1,4 +1,6 @@
 /* modal.css */
+@import url("./controls.css");
+
 
 .modal-overlay {
   display: none;
