@@ -1,6 +1,19 @@
 /* modal.css */
 @import url("./controls.css");
 
+:root {
+  --dark: #000000;
+  --cool-grey: #9a9b9d;
+  --accent-blue: #50787f;
+  --sm-orange: #dc582a;
+  --accent-grey: #636467;
+  --hm-green: #c1d72e;
+  /* --base-font: "Inter", sans-serif; */
+
+
+}
+
+
 
 .modal-overlay {
   display: none;
@@ -108,6 +121,9 @@
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s ease-out;
+  border: 2.5px solid black;
+  border-radius: 2px;
+  border-top: none;
 }
 
 .collapsible-content.expanded {

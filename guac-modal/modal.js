@@ -11,7 +11,7 @@ export { Modal, ModalHTML };
 /**
  * @typedef {Object} TabContext
  * @property {string} tabId - ID of the tab
- * @property {string} title - self explanatory
+ * @property {string} title - bruh
  * @property {string} fasIcon - the font awesome icon class
  */
 
@@ -45,6 +45,11 @@ class ModalHTML {
    * @returns {JQuery<HTMLElement>}
    */
   static createCollapsible(heading, fields) {
+    const { $collapsible, $header, $content } = this.createCollapsibleContainer(heading);
+    fields.forEach((field) => $content.append(ModalHTML.createField(field)));
+    return $collapsible.append($header, $content);
+  }
+  static createCollapsibleContainer(heading) {
     const $collapsible = $("<div>").addClass("collapsible");
     const $header = $("<div>")
       .addClass("collapsible-header")
@@ -63,11 +68,10 @@ class ModalHTML {
     const $content = $("<div>")
       .addClass("collapsible-content")
       .attr("id", `content-${heading.replace(/\s+/g, "-").toLowerCase()}`);
-
-    fields.forEach((field) => $content.append(ModalHTML.createField(field)));
-
-    return $collapsible.append($header, $content);
+    return { $collapsible, $header, $content };
   }
+
+
 
   /**
    * creates a tab element
@@ -119,7 +123,7 @@ class Modal {
     this.renderedTabs = [];
     this.activeTabIndex = -1;
     this.isAnimating = false;
-    this.isOpen = false; 
+    this.isOpen = false;
 
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.bindEvents();
@@ -138,6 +142,12 @@ class Modal {
     };
   }
 
+  /**
+   * 
+   * @param {string} title 
+   * @param {TabData[]} modalTabData 
+   * @returns 
+   */
   init(title, modalTabData) {
     if (this.isOpen) {
       return;
@@ -159,7 +169,6 @@ class Modal {
     this.activeTabIndex = -1;
   }
 
-
   openModal() {
     if (this.isOpen) {
       return;
@@ -172,7 +181,7 @@ class Modal {
         .addClass("active")
         .attr("aria-selected", "true")
         .focus();
-      this.$modalContent.find(".tab-content").eq(0).addClass("active").show(); 
+      this.$modalContent.find(".tab-content").eq(0).addClass("active").show();
       $(document).on("keydown", this.handleKeyDown);
     });
     this.isOpen = true;
@@ -272,13 +281,9 @@ class Modal {
         this.closeModal();
         break;
       case "Tab":
-        if (!event.shiftKey) {
-          event.preventDefault();
-          this.switchToAdjacentTab(false);
-        } else {
-          event.preventDefault();
-          this.switchToAdjacentTab(true);
-        }
+        event.preventDefault();
+        const flag = !event.shiftKey ? false : true;
+        this.switchToAdjacentTab(flag);
         break;
       case "ArrowRight":
         event.preventDefault();

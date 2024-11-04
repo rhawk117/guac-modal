@@ -1,6 +1,6 @@
 import { Modal, ModalHTML } from "./modal.js";
 
-$(document).ready(() => {
+function basicExample() {
   const modal = new Modal();
   const modalTabData1 = [
     {
@@ -144,4 +144,70 @@ $(document).ready(() => {
     modal.init("Project Overview", modalTabData2);
     modal.openModal();
   });
+}
+
+function controlsDemo() {
+  const modal = new Modal();
+
+  const nodeControlsTabData = [
+    {
+      tabContext: {
+        tabId: "node-controls",
+        title: "Node Controls",
+        fasIcon: "fas fa-sliders-h",
+      },
+      tabContent: [
+        $("<button>")
+          .addClass("control-button btn-connect")
+          .attr("aria-label", "Connect To").html(`
+            <i class="icon fas fa-plug"></i>
+            Connect To
+        `),
+
+        // Kill Connection Button
+        $("<button>")
+          .addClass("control-button btn-kill")
+          .attr("aria-label", "Kill Connection").html(`
+            <i class="fas fa-smile"></i>
+            Kill Connection
+        `),
+        
+        // timeline button
+        $("<button>")
+          .addClass("control-button btn-timeline")
+          .attr("aria-label", "Timeline").html(`
+            <i class="fas fa-chart-line"></i>
+              Timeline
+        `),
+      ],
+    },
+  ];
+
+  $("#openModalBtn").on("click", () => {
+    modal.init("Node Controls", nodeControlsTabData);
+    modal.openModal();
+  });
+
+  $(document).on("click", ".btn-connect", function () {
+    $(this).addClass("clicked");
+    setTimeout(() => {
+      $(this).removeClass("clicked");
+    }, 1500); 
+  });
+
+  $(document).on("click", ".btn-kill", function () {
+    $(this).addClass("clicked");
+    setTimeout(() => {
+      $(this).removeClass("clicked");
+    }, 3000); 
+  });
+  $(document).on("click", ".btn-timeline", function () {
+    $(this).toggleClass("active");
+  });
+}
+
+
+$(document).ready(function () {
+  basicExample();
+  controlsDemo();
 });
