@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Modern Loading Screen Example</title>
+    <!-- Font Awesome CDN -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <!-- jQuery CDN -->
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+      integrity="sha256-K+CTkMgfNpujVdvmUIs6Hk5UbG51Vrj8DRr2g+E+Pss="
+      crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="load.css">
+  </head>
+  <body>
+    <!-- Loading Screen -->
+    <div class="custom-loading-overlay" id="loadingOverlay">
+      <i class="fas fa-spinner custom-loading-icon"></i>
+      <span class="custom-loading-text" id="loadingText">Loading.</span>
+    </div>
+
+    <!-- Main Content -->
+    <div class="custom-main-content" id="mainContent">
+      <h1>Welcome to Your Website!</h1>
+      <p>This is where your main content will appear after loading.</p>
+      <!-- Add more of your content here -->
+    </div>
+
+    <script src="./load.js"></script>
+  </body>
+</html>
