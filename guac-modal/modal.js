@@ -21,6 +21,36 @@ export { Modal, ModalHTML };
  * @property {JQuery<HTMLElement>[]} tabContent - the jQuery elements to add
  */
 
+
+export class Field {
+  constructor(title, value) {
+    this.title = title;
+    this.value = value;
+  }
+  toHTML() {
+    return ModalHTML.createField(this);
+  }
+}
+
+export class TabContext {
+  constructor(tabId, title, fasIcon) {
+    this.tabId = tabId;
+    this.title = title;
+    this.fasIcon = fasIcon;
+  }
+}
+
+export class TabData {
+  /**
+   * @param {TabContext} tabContext 
+   * @param {JQuery<HTMLElement>[]} tabContent 
+   */
+  constructor(tabContext, tabContent) {
+    this.tabContext = tabContext;
+    this.tabContent = tabContent;
+  }
+}
+
 class ModalHTML {
   /**
    * creates HTML for a single field
@@ -69,6 +99,13 @@ class ModalHTML {
       .addClass("collapsible-content")
       .attr("id", `content-${heading.replace(/\s+/g, "-").toLowerCase()}`);
     return { $collapsible, $header, $content };
+  }
+  static customCollapsible(title, htmlContent) {
+    const collapseObj = this.createCollapsibleContainer(title);
+    const { $collapsible, $header, $content } = collapseObj;
+    $content.append(htmlContent);
+    $collapsible.append($header, $content);
+    return $collapsible;
   }
 
 

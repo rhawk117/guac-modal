@@ -1,9 +1,6 @@
 import { Modal, ModalHTML } from "./modal.js";
-import {
-  ConnectionNode,
-  ContextHandler,
-  NodeTypes,
-} from "./sample-api.js";
+import { ConnectionNode, ContextHandler, NodeTypes } from "./sample-api.js";
+
 
 
 function parseSampleData() {
@@ -29,24 +26,35 @@ class ConnectionModal {
   static multiLeafModal(selectedConnections, nodeMap) {
     const generalTab = multiLeafGeneralTab(selectedConnections, nodeMap);
     const controls = controlsTab();
-    console.log(generalTab);
-    console.log(controls);
     return [generalTab, controls];
   }
-  static connectionGroupModal(connGroup, nodeMap) {
+  /**
+   *
+   * @param {ConnectionNode} connGroup
+   * @param {ConnectionNode[]} nodes
+   * @param {Map<string, ConnectionNode>} nodeMap
+   * @returns {TabData[]}
+   */
+  static connectionGroupModal(connGroup, nodes, nodeMap) {
+    const childNodes = nodes.filter((node) => 
+      node.parentIdentifier === connGroup.identifier
+    );
     const overviewContext = {
       tabId: "groupOverview",
       title: "Group Overview",
       fasIcon: "fa-solid fa-users-viewfinder",
     };
-    const overviewContent = groupInfoHTML(connGroup);
-    
+
+    const overviewContent = groupOverviewTab(connGroup, childNodes, nodeMap);
+
     const statsContext = {
       tabId: "groupStats",
       title: "Connection Group Statistics",
       fasIcon: "fa-solid fa-chart-line",
     };
-    const statsContent = connGroupStats(connGroup, nodeMap);
+
+    const statsContent = connGroupStats(childNodes);
+
     return [
       {
         tabContext: overviewContext,
@@ -60,40 +68,46 @@ class ConnectionModal {
   }
 }
 
-function connGroupStats(connGroup, nodeMap) {
-  const childNodes = nodeMap.find(
-    (node) => node.parentIdentifier === connGroup.identifier
-  );
+/**
+ *
+ * @param {ConnectionNode} connGroup
+ * @param {ConnectionNode[]} childNodes
+ * @returns {Jquery<HTMLElement>[]}
+ */
+function connGroupStats(childNodes) {
   const stats = [];
-  if(!childNodes) {
-    stats.push({
-      title: "Note",
-      value: "No child connections found"
-    })
+  if (!childNodes) {
+    stats.push(
+      ModalHTML.createField({
+        title: "Note",
+        value: "No child connections found",
+      })
+    );
     return stats;
   }
-  const activeConnections = childNodes.filter(
-    (node) => node.dump.activeConnections > 0
-  ).length;
-  const totalConnections = childNodes.length;
-  const isActive = activeConnections > 0;
+
+  const activeCount = childNodes.filter((node) => 
+    node.dump.activeConnections > 0
+  ).length ?? 0;
+
+  const isActive = activeCount > 0;
+
   stats.push(
-    {
-      title: "Total Connections",
-      value: totalConnections,
-    },
-    {
+    ModalHTML.createField({
+      title: "Total Child Connections",
+      value: childNodes.length,
+    }),
+    ModalHTML.createField({
       title: "Number of Active Connections",
-      value: activeConnections,
-    },
-    {
+      value: activeCount,
+    }),
+    ModalHTML.createField({
       title: "Status",
       value: isActive ? "Online" : "Offline",
-    }
+    })
   );
   return stats;
 }
-
 
 function generalTab(connection, nodeMap) {
   const tabContext = {
@@ -108,10 +122,10 @@ function generalTab(connection, nodeMap) {
 /**
  * Makes the timeline, connect & kill connection btns
  * for the modal.
- * @returns JQuery<HTMLElement>[]
+ * @returns {JQuery<HTMLElement>[]}
  */
 function initControlsHTML() {
-  const makeControlBtn = (label, icon, cssClass) => {
+  const initBtn = (label, icon, cssClass) => {
     return $("<button>")
       .addClass("control-btn " + cssClass)
       .attr("aria-label", label).html(`
@@ -119,11 +133,30 @@ function initControlsHTML() {
 				${label}
 			`);
   };
-  return [
-    makeControlBtn("Connect To", "fa-plug", "btn-connect"),
-    makeControlBtn("Kill Connection", "fa-smile", "btn-kill"),
-    makeControlBtn("View Timeline", "fa-chart-line", "btn-timeline"),
-  ];
+  const connectBtn = initBtn("Connect To", "fa-plug", "btn-connect");
+  const killBtn = initBtn("Kill Connection", "fa-smile", "btn-kill");
+
+  killBtn.hover(
+    function () {
+      $(this)
+        .find("i")
+        .removeClass("fa-smile")
+        .addClass("fa-skull-crossbones");
+    },
+    function () {
+      $(this)
+        .find("i")
+        .removeClass("fa-skull-crossbones")
+        .addClass("fa-smile");
+    }
+  );
+
+  const timelineBtn = initBtn(
+    "View Timeline",
+    "fa-chart-line",
+    "btn-timeline"
+  );
+  return [connectBtn, killBtn, timelineBtn];
 }
 function controlsTab() {
   const tabContext = {
@@ -135,60 +168,31 @@ function controlsTab() {
   return { tabContext, tabContent };
 }
 
-const displayChildConnections = (connGroup, nodeMap) => {
-  const childIds = nodeMap.find(
-    (node) => node.parentIdentifier === connGroup.identifier
-  );
-  const content = [];
 
-  if (!childIds) return;
 
-  childIds.forEach((childId) => {
-    content.push(displayChildInfo(childId, nodeMap));
-  });
-  return content;
-};
-
-function displayChildInfo(childId, nodeMap) {
-  let title = childId.name || childId.identifier;
-  const node = nodeMap.get(childId.identifier);
-
-  if (!node) return;
-
-  const fields = [
-    ModalHTML.createField({
-      title: "Child Connection Name",
-      value: node.name,
-    }),
-    ModalHTML.createField({
-      title: "Child Connection Identifier",
-      value: node.identifier,
-    }),
-    ModalHTML.createField({
-      title: "Child Connection Type",
-      value: node.identifier,
-    }),
-    ModalHTML.createField({
-      title: "Node Type",
-      value: NodeTypes[node.weight],
-    }),
-  ];
-  return ModalHTML.createCollapsible(title, fields);
-}
 
 /* 
-      activeConnections: 0,
-  attributes: {
-    "enable-session-affinity": "true",
-    "max-connections": "100",
-    "max-connections-per-user": "100",
-  },
+    activeConnections: 0,
+    attributes: {
+      "enable-session-affinity": "true",
+      "max-connections": "100",
+      "max-connections-per-user": "100",
+    },
   identifier: "1851",
   name: "interns",
   parentIdentifier: "ROOT",
   type: "ORGANIZATIONAL",
 */
-function groupInfoHTML(connGroup, nodeMap) {
+
+/**
+ *
+ * @param {ConnectionNode} connGroup
+ * @param {ConnectionNode[]} nodes
+ * @param {Map<string, ConnectionNode>} nodeMap
+ * @returns
+ */
+
+function groupOverviewTab(connGroup, childNodes, nodeMap) {
   const fields = [
     ModalHTML.createField({
       title: "Connection Group Name",
@@ -200,10 +204,11 @@ function groupInfoHTML(connGroup, nodeMap) {
     }),
     ModalHTML.createField({
       title: "Connection Group Type",
-      value: connGroup.type,
+      value: connGroup.dump.type ?? "Not set",
     }),
   ];
-  if(connGroup.parentIdentifier) {
+  // only null for root node, which is also a connection group
+  if (connGroup.parentIdentifier) {
     const parent = nodeMap.get(connGroup.parentIdentifier);
     fields.push(
       ModalHTML.createField({
@@ -217,16 +222,22 @@ function groupInfoHTML(connGroup, nodeMap) {
     );
   }
 
-  const { $collapsible, $header, $content } =
-    ModalHTML.createCollapsibleContainer(
-      connGroup.name || connGroup.identifier
+  const title = `${connGroup.name} Child Connections (${childNodes.length})`;
+  const collapseObj = ModalHTML.createCollapsibleContainer(title);
+  const { $collapsible, $header, $content } = collapseObj;
+  childNodes.forEach((child) => {
+    $content.append(
+      ModalHTML.createField({
+        title: "Child Connection Name",
+        value: child.name,
+      })
     );
-  const childInfo = displayChildConnections(connGroup, nodeMap);
-  $content.append(childInfo);
+  });
   $collapsible.append($header, $content);
   fields.push($collapsible);
   return fields;
-};
+
+}
 
 /**
  * @param {ConnectionNode[]} selectedConnections
@@ -237,10 +248,10 @@ function multiLeafGeneralTab(selectedConnections, nodeMap) {
     title: "Connection Overview",
     fasIcon: "fa-solid fa-users-viewfinder",
   };
-  const activeCount = selectedConnections.filter(
-    (connection) => connection.dump.activeConnections > 0
-  ).length;
-
+  const active = selectedConnections.filter(
+    (node) => node.dump.activeConnections > 0
+  );
+  const activeCount = active ? active.length : 0;
   const tabContent = [
     ModalHTML.createField({
       title: "Selected Connections",
@@ -253,11 +264,28 @@ function multiLeafGeneralTab(selectedConnections, nodeMap) {
   ];
 
   selectedConnections.forEach((connection) => {
-    const title = connection.name ? connection.name : connection.identifier;
-    const { $collapsible, $header, $content } =
-      ModalHTML.createCollapsibleContainer(title);
-    const nodeContent = generalTabContent(connection, nodeMap);
-    nodeContent.forEach((field) => $content.append(field));
+    const fields = [
+      ModalHTML.createField({
+        title: "Connection Name",
+        value: connection.name,
+      }),
+      ModalHTML.createField({
+        title: "Node Identifier",
+        value: connection.identifier,
+      }),
+      ModalHTML.createField({
+        title: "Parent Connection",
+        value: parent.name,
+      }),
+      ModalHTML.createField({
+        title: "Parent Identifier",
+        value: connection.parentIdentifier,
+      }),
+    ];
+    const { $collapsible, $header, $content } = ModalHTML.createCollapsibleContainer(
+      `${connection.name} Summary`
+    )
+    fields.forEach((field) => $content.append(field));
     $collapsible.append($header, $content);
     tabContent.push($collapsible);
   });
@@ -417,6 +445,7 @@ function multiLeafModal() {
     selection.push(selected);
     console.log(`Selected Node -> ${selected.name}`);
   }
+
   const tabData = ConnectionModal.multiLeafModal(selection, nodeMap);
   $("#multiBtn").on("click", () => {
     modal.init("Connection Overview", tabData);
@@ -424,7 +453,22 @@ function multiLeafModal() {
   });
 }
 
+function groupModal() {
+  const modal = new Modal();
+  const { nodes, nodeMap } = parseSampleData();
+  const groups = nodes.filter((node) => node.isGroup());
+  const choice = getRandom(groups);
+
+  const tabData = ConnectionModal.connectionGroupModal(choice, nodes, nodeMap);
+
+  $("#groupBtn").on("click", function () {
+    modal.init(choice.name, tabData);
+    modal.openModal();
+  });
+}
+
 $(document).ready(() => {
   leaveExample();
   multiLeafModal();
+  groupModal();
 });

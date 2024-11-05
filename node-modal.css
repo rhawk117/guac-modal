@@ -37,6 +37,8 @@
   max-width: 800px; 
   z-index: 1001;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  border: 2.5px solid white;
+  border-radius: 5px;
 }
 
 .modal-header {
@@ -159,9 +161,6 @@
 #closeIcon:hover {
   transform: scale(1.1);
 }
-
-
-
 
 .tab-field {
   margin: 10px 0;
